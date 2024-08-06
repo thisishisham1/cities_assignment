@@ -10,7 +10,7 @@ val Typography = Typography(
     headlineMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
+        fontSize = 16.sp,
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.Monospace,

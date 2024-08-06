@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -34,9 +35,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,9 +55,9 @@ fun HomeView(navController: NavController) {
         HomeViewModel()
     }
     var showSearchField by remember { mutableStateOf(false) }
-    val isLoading by vm.isLoading.observeAsState(initial = true)
-    val cities by vm.cities.observeAsState(initial = emptyList())
-    val searchText by vm.searchText.observeAsState("")
+    val isLoading by vm.isLoading.collectAsState()
+    val citiesToDisplay by vm.citiesToDisplay.collectAsState()
+    val searchText by vm.searchText.collectAsState()
     Scaffold(topBar = {
         if (showSearchField) {
             OutlinedTextField(value = searchText,
@@ -69,12 +69,15 @@ fun HomeView(navController: NavController) {
                     .fillMaxWidth()
                     .padding(16.dp),
                 trailingIcon = {
-                    IconButton(onClick = { showSearchField = false }) {
+                    IconButton(onClick = {
+                        showSearchField = false
+                        vm.onSearchTextChange("")
+                    }) {
                         Icon(Icons.Filled.Close, contentDescription = "Close Search")
                     }
                 })
         } else {
-            CenterAlignedTopAppBar(title = { Text("My App") },
+            CenterAlignedTopAppBar(title = { Text("Cities") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -94,13 +97,13 @@ fun HomeView(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (isLoading && cities.isEmpty()) {
+            if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 Cities(
-                    cities = if (showSearchField) emptyList() else cities, onLoadMore = {
-                        vm.loadMoreCities()
-                    }, navController = navController
+                    cities = citiesToDisplay,
+                    onLoadMore = vm::loadMoreCities,
+                    navController = navController
                 )
             }
         }
@@ -112,25 +115,49 @@ fun HomeView(navController: NavController) {
 @Composable
 fun Cities(cities: List<City>, onLoadMore: () -> Unit, navController: NavController) {
     val listState = rememberLazyListState()
-    val shouldLoadMore = remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index == cities.size - 1
-        }
-    }
+    var shouldLoadMore by remember { mutableStateOf(false) }
 
-    LazyColumn(state = listState) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         items(cities) { city ->
             CityCard(
                 city = city,
-                onClick = { navController.navigate("map/${city.coord.lat}/${city.coord.lon}") })
+                onClick = {
+                    navController.navigate("map/${city.coord.lat}/${city.coord.lon}")
+                }
+            )
+        }
+
+        if (cities.isNotEmpty()) {
+            item {
+                if (shouldLoadMore) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = {
+                        onLoadMore()
+                        shouldLoadMore = false
+                    }) {
+                        Text("Load More")
+                    }
+                }
+            }
+        }
+
+        if (cities.isEmpty()) {
+            item {
+                Text("No cities found.")
+            }
         }
     }
 
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value) {
-            onLoadMore()
+    LaunchedEffect(listState.layoutInfo.visibleItemsInfo.lastOrNull()) {
+        if (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == cities.size - 1 && !shouldLoadMore) {
+            shouldLoadMore = true
         }
+        shouldLoadMore = true
+
     }
 }
 
