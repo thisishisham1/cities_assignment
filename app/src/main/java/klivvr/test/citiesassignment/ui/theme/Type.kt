@@ -6,12 +6,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
 val Typography = Typography(
     headlineMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
+        fontSize = 16.sp,
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
