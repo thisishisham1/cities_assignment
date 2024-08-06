@@ -19,6 +19,8 @@ class HomeViewModel : ViewModel() {
     val isLoading: LiveData<Boolean> get() = _isLoading
     private val _cities = MutableLiveData<List<City>>()
     val cities: LiveData<List<City>> get() = _cities
+    private val _searchText = MutableLiveData<String>("")
+    val searchText: LiveData<String> get() = _searchText
 
     private var currentIndex = 0
     private val chunkSize = 20
@@ -60,6 +62,10 @@ class HomeViewModel : ViewModel() {
     fun loadMoreCities() {
         if (_isLoading.value == true) return
         loadCities()
+    }
+
+    fun onSearchTextChange(newText: String) {
+        _searchText.value = newText
     }
 
 }

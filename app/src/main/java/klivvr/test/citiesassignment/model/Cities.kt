@@ -15,3 +15,8 @@ data class City(
     val _id: Int,
     val coord: Coord
 )
+
+
+fun City.doesMatch(query: String): Boolean {
+    return name.contains(query, ignoreCase = true) || country.contains(query, ignoreCase = true)
+}

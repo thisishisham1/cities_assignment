@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 sealed class Destination {
     @Serializable
     data object Home : Destination()
+
     @Serializable
-    data object Map : Destination()
+    data class Map(val lat: Double, val lon: Double) : Destination()
 }
