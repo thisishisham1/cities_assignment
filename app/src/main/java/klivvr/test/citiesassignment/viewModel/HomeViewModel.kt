@@ -82,9 +82,11 @@ class HomeViewModel : ViewModel() {
         } else {
             allCities.filter { city ->
                 city.name.startsWith(searchText, ignoreCase = true) ||
-                        city.country.startsWith(searchText, ignoreCase = true)
+                        (city.country.startsWith(
+                            searchText,
+                            ignoreCase = true
+                        ) && city.name.startsWith(searchText, ignoreCase = true))
             }
         }
     }
-
 }
